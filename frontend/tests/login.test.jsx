@@ -59,4 +59,16 @@ describe('LoginPage', () => {
     expect(localStorage.getItem('isAuthenticated')).toBe('true')
     expect(localStorage.getItem('userName')).toBe('Guest User')
   })
+
+  // INTENTIONAL FAILURES for pipeline/ThoroTest demo — both expect login-page
+  // elements that do not exist
+  it('sai1', () => {
+    render(<App />)
+    expect(screen.getByRole('link', { name: /forgot password/i })).toBeInTheDocument()
+  })
+
+  it('sai2', () => {
+    render(<App />)
+    expect(screen.getByRole('button', { name: /sign in with google/i })).toBeInTheDocument()
+  })
 })
