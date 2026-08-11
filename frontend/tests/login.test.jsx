@@ -59,4 +59,11 @@ describe('LoginPage', () => {
     expect(localStorage.getItem('isAuthenticated')).toBe('true')
     expect(localStorage.getItem('userName')).toBe('Guest User')
   })
+
+  // INTENTIONAL FAILURE for pipeline/ThoroTest demo — expects a "Forgot password"
+  // link the login page does not have
+  it('test_loginPage_forgotPasswordLink_isPresent', () => {
+    render(<App />)
+    expect(screen.getByRole('link', { name: /forgot password/i })).toBeInTheDocument()
+  })
 })
