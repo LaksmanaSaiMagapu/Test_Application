@@ -1,0 +1,17 @@
+{
+  "llm": {
+    "model": "openai/qwen3:8b",
+    "base_url": "$LLM_BASE_URL",
+    "api_key": "$LLM_API_KEY",
+    "custom_llm_provider": "openai",
+    "num_retries": 5,
+    "retry_max_wait": 300,
+    "timeout": 1800,
+    "max_output_tokens": 16384,
+    "temperature": 0.1,
+    "reasoning_effort": "high",
+    "input_cost_per_token": 0.0,
+    "output_cost_per_token": 0.0
+  },
+  "include_secrets": true
+}

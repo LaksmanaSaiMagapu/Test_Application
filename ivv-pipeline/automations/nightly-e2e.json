@@ -1,0 +1,24 @@
+{
+  "name": "ivv-nightly-e2e",
+  "description": "Nightly full E2E IV&V against the QA namespace",
+  "trigger": { "type": "cron", "schedule": "0 2 * * *", "timezone": "UTC" },
+  "conversation": {
+    "agent_profile_id": "ivv-e2e-author",
+    "prompt_template": "prompts/e2e-gis.md",
+    "workspace": "/repos/e2e-suite",
+    "vars": {
+      "SUT_URL": "http://gis-frontend.qa-system.svc.cluster.local",
+      "E2E_REPO_PATH": "/repos/e2e-suite",
+      "RUN_DATE": "{{run.date}}"
+    },
+    "tags": ["ivv", "e2e", "nightly"]
+  },
+  "on_failure": {
+    "conversation": {
+      "agent_profile_id": "ivv-defect-triager",
+      "prompt_template": "prompts/defect-triage.md",
+      "vars": { "REPORT_DIR": "/repos/e2e-suite/reports/{{run.date}}", "RUN_DATE": "{{run.date}}" }
+    }
+  },
+  "evidence": { "trajectory": true, "reports": "minio://ivv-evidence/e2e/{{run.date}}/" }
+}

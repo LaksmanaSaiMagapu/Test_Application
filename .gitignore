@@ -37,3 +37,15 @@ logs/
 
 # SonarQube scanner
 .scannerwork/
+
+# IVV pipeline / local secrets & evidence
+ivv-pipeline/.env
+ivv-pipeline/evidence/
+
+# Test reports & artifacts
+frontend/reports/
+e2e/reports/
+e2e/*.png
+
+# stray vite cache (wrong-CWD artifact)
+.vite/

@@ -1,0 +1,23 @@
+{
+  "name": "ivv-rc-release-gate",
+  "description": "On release-candidate tag: sonar remediation sweep + evidence pack",
+  "trigger": {
+    "type": "webhook",
+    "source": "gitlab",
+    "events": ["tag_push"],
+    "filters": { "ref": ["refs/tags/v*-rc*"] }
+  },
+  "conversation": {
+    "agent_profile_id": "ivv-sonar-remediator",
+    "prompt_template": "prompts/sonar-remediation.md",
+    "workspace": "/repos/{{project.path_with_namespace}}",
+    "vars": {
+      "REPO_PATH": "/repos/{{project.path_with_namespace}}",
+      "BRANCH": "{{ref}}",
+      "SONAR_URL": "http://sonarqube.quality-gate.svc.cluster.local",
+      "SONAR_PROJECT_KEY": "{{project.path_with_namespace}}"
+    },
+    "tags": ["ivv", "release-gate", "{{ref}}"]
+  },
+  "evidence": { "trajectory": true, "upload": "minio://ivv-evidence/release-gate/{{ref}}/" }
+}

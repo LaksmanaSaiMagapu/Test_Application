@@ -1,88 +1,109 @@
 # GeoNexus GIS Dashboard
 
-A full-stack GIS (Geographic Information System) web application for visualizing and managing bikes, geo-fence areas, and routes on an interactive map.
+A full-stack GIS dashboard for tracking a bike fleet on a map. It supports drawing/saving/measuring polygons (areas), placing tracks and routes, geofencing, and filtering bikes by vehicle number, area, and time. Data persists to PostgreSQL and can also be exported/imported as local JSON files.
 
-## Features
-
-- **Secure login** – protected dashboard; demo users `admin` / `admin123` and `user` / `user123`
-- **Interactive map** – built with MapLibre GL, OpenStreetMap tiles
-- **Bike tracking** – bikes shown as red dots; double-click a bike for a detailed popup (vehicle no., name, chassis, registered area, battery, date/time, position)
-- **Filter panel** – search bikes by number, name, chassis number, date range, and area
-- **Geo-fence areas** – pre-defined areas (London, Paris, Tokyo, Delhi, Mumbai, Bengaluru, Hyderabad, Chennai, Kolkata) drawn in black with name labels; areas can be created and persisted
-- **Route planning** – pick a start and end point to preview a route, then save it; saved routes are drawn in red with name labels; clicking a saved route fits the map to it
-- **Persistence** – areas, routes, and tracks are stored in an H2 file database
-
-## Tech Stack
-
-| Layer    | Technology                                        |
-| -------- | ------------------------------------------------- |
-| Frontend | React 19, Vite 8, MapLibre GL 6, React Router     |
-| Backend  | Spring Boot 3.3, Spring Data JPA, Maven, Java 22  |
-| Database | H2 (file-based)                                   |
-
-## Project Structure
+## Architecture
 
 ```
-Test_Application/
-├── frontend/   # React + Vite + MapLibre GL dashboard
-├── backend/    # Spring Boot REST API (port 8080)
-└── README.md
+backend/   Spring Boot REST API + PostgreSQL
+frontend/  React + Vite + MapLibre GL dashboard
+e2e/       Playwright end-to-end test suite
 ```
 
-## Getting Started
+## Stack versions
 
-### Prerequisites
+### Backend (`backend/`)
 
-- Java 22
-- Maven 3.9+
-- Node.js 18+ and npm
+| Component       | Version          |
+|-----------------|------------------|
+| Java            | 17               |
+| Maven           | 3.9.6            |
+| Spring Boot     | 2.7.18           |
+| Spring Framework| 5.3.18           |
+| Spring Data JPA | 2.7.18           |
+| Hibernate       | 5.6.15.Final     |
+| Tomcat (embedded) | 9.0.83         |
+| PostgreSQL      | 16.0             |
+| PostgreSQL JDBC | 42.7.4           |
 
-### 1. Run the backend
+### Frontend (`frontend/`)
 
-The frontend calls the API at `http://localhost:8080`, so keep the backend running on port 8080.
+| Component            | Version    |
+|----------------------|------------|
+| React / React DOM    | 19.1.0     |
+| react-router-dom     | 7.18.2     |
+| maplibre-gl          | 6.1.0      |
+| Vite                 | 8.x        |
+| oxlint               | 1.x        |
+
+### E2E (`e2e/`)
+
+| Component | Version  |
+|-----------|----------|
+| Playwright | 1.62.1  |
+
+## Setup
+
+### 1. Database
+
+Option A — local PostgreSQL 16 on `localhost:5432`:
 
 ```bash
 cd backend
-mvn spring-boot:run
+sudo -u postgres psql -f init-db.sql
 ```
 
-The REST API starts at `http://localhost:8080`.
+Option B — PostgreSQL 16 in a container (exposes port 5434):
 
-### 2. Run the frontend
+```bash
+cd backend
+docker compose up -d        # or: podman-compose up -d
+```
+
+### 2. Backend
+
+```bash
+cd backend
+mvn package
+java -jar target/geonexus-backend-1.0.0.jar
+```
+
+Defaults: `jdbc:postgresql://localhost:5432/geonexus`, user/password `geonexus/geonexus`.
+Override via `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `CORS_ALLOWED_ORIGINS` env vars
+(e.g. for the container DB on port 5434: `DB_URL=jdbc:postgresql://localhost:5434/geonexus`).
+
+API runs on `http://localhost:8080`. CORS is enabled for `http://localhost:5173`.
+
+### 3. Frontend
 
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev      # http://localhost:5173
+npm run build    # production build
+npm run lint     # oxlint
 ```
 
-Open `http://localhost:5173` in your browser and sign in with:
+Login: `admin` / `admin123`.
 
-| Username | Password   |
-| -------- | ---------- |
-| admin    | admin123   |
-| user     | user123    |
-
-### Production build (frontend)
+### 4. E2E tests
 
 ```bash
-cd frontend
-npm run build
-npm run preview
+cd e2e
+npm install
+node run-tests.js   # requires backend, DB, and frontend dev server on :5175
 ```
 
-## REST API Endpoints
+## API
 
-| Method   | Endpoint        | Description                    |
-| -------- | --------------- | ------------------------------ |
-| GET/POST | `/api/areas`    | List / create geo-fence areas  |
-| GET/PUT/DELETE | `/api/areas/{id}` | Update / delete an area    |
-| GET/POST | `/api/routes`   | List / save routes             |
-| DELETE   | `/api/routes/{id}` | Delete a route               |
-| GET/POST | `/api/tracks`   | List / save tracks             |
-| DELETE   | `/api/tracks/{id}` | Delete a track               |
-
-## Notes
-
-- The H2 database file is created under `backend/data/areadb` on first run.
-- The map uses public OpenStreetMap tiles; an internet connection is required to load them.
+| Method | Path               | Notes                                  |
+|--------|--------------------|----------------------------------------|
+| POST   | `/api/areas`       | Create area (polygon JSON + value/unit) |
+| GET    | `/api/areas`       | List areas                             |
+| DELETE | `/api/areas/{id}`  | Delete area                            |
+| POST   | `/api/tracks`      | Create track (lat/lon, speed, course)  |
+| GET    | `/api/tracks`      | List tracks                            |
+| DELETE | `/api/tracks/{id}` | Delete track                           |
+| POST   | `/api/routes`      | Create route (start/end coords, validity) |
+| GET    | `/api/routes`      | List routes                            |
+| DELETE | `/api/routes/{id}` | Delete route                           |

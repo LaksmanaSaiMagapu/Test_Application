@@ -1,0 +1,23 @@
+{
+  "name": "ivv-mr-unit-tests",
+  "description": "On every merge request: generate + run unit tests for changed code",
+  "trigger": {
+    "type": "webhook",
+    "source": "gitlab",
+    "events": ["merge_request"],
+    "filters": { "action": ["open", "update"], "target_branch": ["main", "develop"] }
+  },
+  "conversation": {
+    "agent_profile_id": "ivv-unit-test-writer",
+    "prompt_template": "prompts/unit-tests.md",
+    "workspace": "/repos/{{project.path_with_namespace}}",
+    "vars": {
+      "REPO_PATH": "/repos/{{project.path_with_namespace}}",
+      "MR_IID": "{{object_attributes.iid}}",
+      "MR_SHA": "{{object_attributes.last_commit.id}}",
+      "TARGET_BRANCH": "{{object_attributes.target_branch}}"
+    },
+    "tags": ["ivv", "mr-{{object_attributes.iid}}", "{{project.path_with_namespace}}"]
+  },
+  "evidence": { "trajectory": true, "upload": "minio://ivv-evidence/unit-tests/{{object_attributes.iid}}/" }
+}
